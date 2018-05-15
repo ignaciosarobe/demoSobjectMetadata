@@ -7,6 +7,16 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { MyApp } from './app.component';
 import { HomePage } from '../pages/home/home';
 
+import { HttpModule } from '@angular/http';
+import { HttpClientModule } from '@angular/common/http';
+//import { HttpHeaders } from '@angular/common/http';
+import { SalesforceProvider } from '../providers/salesforce/salesforce';
+
+import { IonicStorageModule } from '@ionic/storage';
+import { DescribeObjectsProvider } from '../providers/describe-objects/describe-objects';
+import { SqliteProvider } from '../providers/sqlite/sqlite';
+import { UtilitiesProvider } from '../providers/utilities/utilities';
+
 @NgModule({
   declarations: [
     MyApp,
@@ -14,7 +24,12 @@ import { HomePage } from '../pages/home/home';
   ],
   imports: [
     BrowserModule,
-    IonicModule.forRoot(MyApp)
+    HttpModule,
+    HttpClientModule,
+    //HttpHeaders,
+    IonicModule.forRoot(MyApp),
+    IonicStorageModule.forRoot()
+
   ],
   bootstrap: [IonicApp],
   entryComponents: [
@@ -24,7 +39,12 @@ import { HomePage } from '../pages/home/home';
   providers: [
     StatusBar,
     SplashScreen,
-    {provide: ErrorHandler, useClass: IonicErrorHandler}
+    {provide: ErrorHandler, useClass: IonicErrorHandler},
+    SalesforceProvider,
+    DescribeObjectsProvider,
+    SqliteProvider,
+    UtilitiesProvider,
+    UtilitiesProvider
   ]
 })
 export class AppModule {}
