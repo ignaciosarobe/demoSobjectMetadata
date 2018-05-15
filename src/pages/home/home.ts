@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
-import { NavController, AlertController } from 'ionic-angular';
+import { NavController, AlertController, IonicPage } from 'ionic-angular';
 import { SalesforceProvider } from '../../providers/salesforce/salesforce';
-import { DescribeObjectsProvider } from '../../providers/describe-objects/describe-objects';
 import { UtilitiesProvider } from '../../providers/utilities/utilities';
-import { Storage } from '@ionic/storage';
+import { DescribeProvider } from '../../providers/describe/describe';
 
 
+@IonicPage()
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html'
@@ -18,33 +18,18 @@ export class HomePage {
   searchResult = [];
   viewSearch = true;
   fields = [];
+  nameObj : string = 'Elegir Objecto';
 
   constructor(public navCtrl: NavController,
-              public alertCtrl: AlertController, 
-  	          public salesForce : SalesforceProvider,
-  	          public sfDescribe : DescribeObjectsProvider,
   	          public utils : UtilitiesProvider,
-  	          private storage: Storage) {
+              public salesForce : SalesforceProvider,
+              public describeSqlite : DescribeProvider
+              ) {
 
-  
+    this.getObjectDescribe();
   } 
 
-  async login(){
-    
-    this.utils.showLoading();
 
-  	try{
-	  	  const logData = await this.salesForce.login();
-	  	  console.log("datos : ", logData)
-	      this.storage.set('LogData',logData);
-	      this.getObjectDescribe();
-
-  	}catch(e){
-          this.utils.dismissLoading();
-          this.utils.showAlert('informe',e.message);
-  	}
-	
-  }
 
   getItems(ev: any) {
     
@@ -52,7 +37,8 @@ export class HomePage {
 
     let val = ev.target.value;
 
-    if (val && val.trim() != '') {
+    if (val && val.trim() != '' && this.metaObjects != null) {
+
          this.searchResult = this.metaObjects.filter((obj) => {
 
             this.utils.dismissLoading();
@@ -63,10 +49,10 @@ export class HomePage {
 
   getObjectDescribe(){
 
-    this.sfDescribe.getAllObjects().subscribe( 
+    this.salesForce.getAllMetadaObjects().subscribe( 
 
         accs => {
-        	this.metaObjects = accs['sobjects'].filter( obj => obj.updateable);
+        	this.metaObjects = accs['sobjects'].filter( obj => obj.updateable && obj.layoutable );
         	console.log('objetos editables ',this.metaObjects)
         	this.utils.dismissLoading();
         },
@@ -80,20 +66,30 @@ export class HomePage {
 
   async objectSelected(obj : any){
 
-  	this.utils.showLoading('Configurando el objeto...');
+  	this.utils.showLoading('Actualizando campos...');
   	this.viewSearch = false;
-    console.log('obj seleccionado : ',obj.name);
+    this.nameObj = this.viewSearch ? this.nameObj : obj.label;
 
     try{
   
-        let object = await this.sfDescribe.getMetadaObject(obj.name);
+        let object = await this.salesForce.getMetadaObject(obj.name);
+        console.log("object : ", object);
 
-        this.fields = object['fields'].filter(obj => obj.updateable);
-
-        this.fields.map( field => console.log('campos : ', field, field.length) )
-
-        //aca haria el llamado para la creacion de las tablas
+        this.fields = this.filtrarCampos(object);
         
+        console.log("campos : ", this.fields);
+
+        await this.describeSqlite.drop('describe');
+       
+        let result = await this.describeSqlite.upsert(obj.name,JSON.stringify(this.fields));
+        console.log("result insert: ", result);
+
+        let describes = await this.describeSqlite.get();
+
+       for (let index = 0; index < describes.rows.length; index++) { 
+            console.log( describes.rows.item(index) );
+            console.log( JSON.parse(describes.rows.item(index).campos) ); //queda colgado el nombre del obj 
+       }
 
         this.utils.dismissLoading();
 
@@ -105,10 +101,36 @@ export class HomePage {
 
   }
 
+  filtrarCampos(object : any){
+
+    let lista = [];
+
+    object['fields'].forEach(obj =>{
+       if(obj.updateable)
+          lista.push({ label :obj.label ,tipo: obj.type, picklist: this.filtrarPickList(obj.picklistValues)});
+    })
+    return lista;
+  }
+
+  filtrarPickList(picklistValues : any){
+    if(picklistValues.length > 0){
+
+       let listPick = [];
+       picklistValues.forEach((p,i) => {
+          if(p.active){
+             listPick[i] = {label: p.label, value: p.value}
+          }
+       })
+       return listPick;
+
+    }else{ 
+      return []; 
+    }
+  }
 
 
-  //**********************************************************************************
 
+  /*
   getAllAccount(){
   	this.salesForce.getQueryResult("SELECT Name,Phone,Email FROM Account ORDER BY Name ASC");
   }
@@ -126,11 +148,7 @@ export class HomePage {
   }
 
   getAccount(){
-  	this.salesForce.getOneObject("Account","0011I000002n3KAQAY");
-  }
-
-  //*********************************************************************************
-
-
+  	this.salesForce.getOneObject("Account","0011I000002n3KAQAY"); 
+  }*/
 
 }

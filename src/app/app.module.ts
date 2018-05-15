@@ -5,22 +5,22 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
 
 import { MyApp } from './app.component';
-import { HomePage } from '../pages/home/home';
+import { LoginPage } from '../pages/login/login';
 
 import { HttpModule } from '@angular/http';
 import { HttpClientModule } from '@angular/common/http';
 //import { HttpHeaders } from '@angular/common/http';
-import { SalesforceProvider } from '../providers/salesforce/salesforce';
-
 import { IonicStorageModule } from '@ionic/storage';
-import { DescribeObjectsProvider } from '../providers/describe-objects/describe-objects';
-import { SqliteProvider } from '../providers/sqlite/sqlite';
+import { SQLite } from '@ionic-native/sqlite';
+import { SalesforceProvider } from '../providers/salesforce/salesforce';
 import { UtilitiesProvider } from '../providers/utilities/utilities';
+import { DescribeProvider } from '../providers/describe/describe';
 
 @NgModule({
   declarations: [
     MyApp,
-    HomePage
+    LoginPage,
+    
   ],
   imports: [
     BrowserModule,
@@ -34,17 +34,17 @@ import { UtilitiesProvider } from '../providers/utilities/utilities';
   bootstrap: [IonicApp],
   entryComponents: [
     MyApp,
-    HomePage
+    LoginPage,
+
   ],
   providers: [
     StatusBar,
     SplashScreen,
     {provide: ErrorHandler, useClass: IonicErrorHandler},
+    SQLite,
     SalesforceProvider,
-    DescribeObjectsProvider,
-    SqliteProvider,
     UtilitiesProvider,
-    UtilitiesProvider
+    DescribeProvider
   ]
 })
 export class AppModule {}

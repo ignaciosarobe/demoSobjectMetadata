@@ -1,7 +1,7 @@
 <ion-header>
   <ion-navbar>
     <ion-title>
-      Metadata Objects
+      {{ nameObj }}
     </ion-title>
   </ion-navbar>
 </ion-header>
@@ -9,25 +9,29 @@
 <ion-content padding>
 
     <div *ngIf="viewSearch">
-		<button  ion-button block (click)="login()">Login</button>
-		<ion-searchbar *ngIf="metaObjects != null && metaAccount != '' "  (ionInput)="getItems($event)">
-		</ion-searchbar>
+  
+		<ion-searchbar (ionInput)="getItems($event)"></ion-searchbar>
 
 		<ion-list inset>
-		  <button ion-item *ngFor="let item of searchResult" (click)="objectSelected(item)">
-		    {{ item.label }} - {{ item.name }}
-		  </button> 
+			<button ion-item *ngFor="let item of searchResult" (click)="objectSelected(item)">
+			{{ item.label }} - {{ item.name }}
+			</button> 
 		</ion-list>
+  
     </div>
 
 	<div *ngIf="!viewSearch">
-        <button ion-button block (click)="viewSearch = true">Volver</button>
+	  <button ion-button block color="light" (click)="viewSearch = true">Volver a elegir</button>    
+      <button ion-button block color="primary">Sync</button>
+      <button ion-button block color="secondary">Alta</button>
+      <button ion-button block color="dark">Lista</button>
+		
        
-	    <ion-item>
+	  <ion-item>
 		  <ion-icon name="logo-twitter" item-start></ion-icon>
 		  Followers
 		  <ion-badge item-end>260k</ion-badge>
-		</ion-item>
+	  </ion-item>
 	</div>
 
 </ion-content>
