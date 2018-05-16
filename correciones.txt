@@ -1,0 +1,5 @@
+-saber cuales son los campos requeridos :
+ // si  isNillable es falso, el campo es obligatorio
+
+
+-ver el tema de los select multiples

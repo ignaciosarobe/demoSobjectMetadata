@@ -12,13 +12,12 @@ import { DescribeProvider } from '../../providers/describe/describe';
 })
 export class HomePage { 
   
-  metaObjects = null ;
-  errorMsg :  string;
-  mostrar : boolean = false;
-  searchResult = [];
-  viewSearch = true;
-  fields = [];
-  nameObj : string = 'Elegir Objecto';
+  metaObjects : any = null ;
+  errorMsg : string;
+  searchResult : Array<any>;
+  viewSearch : boolean = true;
+  fields : Array<any> = [];
+  Obj : any;
 
   constructor(public navCtrl: NavController,
   	          public utils : UtilitiesProvider,
@@ -27,9 +26,12 @@ export class HomePage {
               ) {
 
     this.getObjectDescribe();
-  } 
+  }
 
-
+  get toogleHeader(){
+    return this.viewSearch ? 'Elegir Objeto : ' : this.Obj.label;
+  }  
+  
 
   getItems(ev: any) {
     
@@ -68,29 +70,18 @@ export class HomePage {
 
   	this.utils.showLoading('Actualizando campos...');
   	this.viewSearch = false;
-    this.nameObj = this.viewSearch ? this.nameObj : obj.label;
+    this.Obj = obj;
 
     try{
   
         let object = await this.salesForce.getMetadaObject(obj.name);
-        console.log("object : ", object);
+        console.log('campos sin filtar : ',object['fields']);
 
-        this.fields = this.filtrarCampos(object);
+
+        this.fields = this.fieldsFilter(object);
         
-        console.log("campos : ", this.fields);
-
-        await this.describeSqlite.drop('describe');
-       
-        let result = await this.describeSqlite.upsert(obj.name,JSON.stringify(this.fields));
-        console.log("result insert: ", result);
-
-        let describes = await this.describeSqlite.get();
-
-       for (let index = 0; index < describes.rows.length; index++) { 
-            console.log( describes.rows.item(index) );
-            console.log( JSON.parse(describes.rows.item(index).campos) ); //queda colgado el nombre del obj 
-       }
-
+        await this.describeSqlite.upsert(obj.name, JSON.stringify(this.fields));
+      
         this.utils.dismissLoading();
 
     }catch(e){
@@ -101,18 +92,39 @@ export class HomePage {
 
   }
 
-  filtrarCampos(object : any){
+  async goToForm(){
+
+    //test
+     let describes =  await this.describeSqlite.get();
+     for (var i = 0; i < describes.rows.length; i++) {
+         console.log('describe :  ', describes.rows.item(i));
+     }
+    //test
+
+
+     this.utils.showLoading(null,true);// ponerlo en true a veces tira un error
+     this.navCtrl.push('FormularioPage',{ obj: this.Obj, fields: this.fields });
+  }
+
+
+  //meter estos metodos en un helper de filtros
+
+  fieldsFilter(object : any){
 
     let lista = [];
 
     object['fields'].forEach(obj =>{
        if(obj.updateable)
-          lista.push({ label :obj.label ,tipo: obj.type, picklist: this.filtrarPickList(obj.picklistValues)});
+          lista.push({
+            required : !obj.nillable, 
+            label :obj.label,
+            tipo: obj.type, 
+            picklist: this.pickListFilter(obj.picklistValues)});
     })
     return lista;
   }
 
-  filtrarPickList(picklistValues : any){
+  pickListFilter(picklistValues : any){
     if(picklistValues.length > 0){
 
        let listPick = [];

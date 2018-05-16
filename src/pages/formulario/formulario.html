@@ -1,0 +1,68 @@
+
+<ion-header>
+  <ion-navbar>
+      <ion-title>Formulario : {{ objSelected.label }}</ion-title>
+      <ion-buttons end>
+        <button ion-button icon-only (click)="guardar()">
+          <ion-icon name="checkmark"></ion-icon>
+        </button>
+      </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+
+  <ion-list *ngFor="let campo of fields">
+    
+    <ion-item *ngIf="campo.tipo == 'string' || campo.tipo == 'date' || campo.tipo == 'datetime'">
+        <ion-label color="primary" stacked>{{ campo.label }} <ng-container>*</ng-container></ion-label>
+        <ion-input type="text" placeholder="input text || date || datetime"></ion-input>
+    </ion-item> 
+
+    <ion-item *ngIf="campo.tipo == 'textarea'">
+        <ion-label color="primary" stacked>{{ campo.label }} <ng-container>*</ng-container></ion-label>
+        <ion-textarea placeholder="textarea"></ion-textarea>
+    </ion-item> 
+
+    <ion-item *ngIf="campo.tipo == 'boolean'">
+      <ion-label color="primary" stacked>{{ campo.label }} <ng-container>*</ng-container></ion-label>
+      <ion-checkbox color="dark"></ion-checkbox>
+    </ion-item>
+
+    <ion-item *ngIf="campo.tipo == 'phone'"> 
+      <ion-label color="primary" stacked>{{ campo.label }} <ng-container>*</ng-container></ion-label>
+      <ion-input type="tel" placeholder="Tel Input"></ion-input>
+    </ion-item>
+    
+    <ion-item *ngIf="campo.tipo == 'url'"> 
+      <ion-label color="primary" stacked>{{ campo.label }} <ng-container>*</ng-container></ion-label>
+      <ion-input type="url" placeholder="Input url"></ion-input>
+    </ion-item>
+
+    <ion-item *ngIf="campo.tipo == 'email'"> 
+      <ion-label color="primary" stacked>{{ campo.label }} <ng-container>*</ng-container></ion-label>
+      <ion-input type="email" placeholder="Input email"></ion-input>
+    </ion-item>
+    <!-- Usar un pipe para darle formato cuando al tipo currency , percent , date etc -->
+    <ion-item *ngIf="numericalValues.includes(campo.tipo)">  
+      <ion-label color="primary" stacked>{{ campo.label }} <ng-container>*</ng-container></ion-label>
+      <ion-input type="number" placeholder="Input currency || int || double || percent"></ion-input>
+    </ion-item>
+
+    <ion-item *ngIf="campo.tipo == 'picklist'">
+        <ion-label color="primary" stacked>{{ campo.label }} <ng-container>*</ng-container></ion-label>
+        <ion-select placeholder='Seleccione una opción'>
+          <ion-option *ngFor="let item of campo.picklist" value="{{ item.value }}">{{ item.label }}</ion-option>
+        </ion-select>   
+    </ion-item>
+
+    <ion-item *ngIf="campo.tipo == 'reference'"> 
+      <ion-label color="primary" stacked>{{ campo.label }} <ng-container>*</ng-container></ion-label>
+      <ion-input type="search" placeholder="Input search"></ion-input>
+    </ion-item>
+
+  </ion-list>
+
+  <button ion-button block color="primary" (click)="guardar()">Guardar</button>
+
+</ion-content>

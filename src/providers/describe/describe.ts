@@ -1,14 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { SQLite, SQLiteObject } from '@ionic-native/sqlite';
+import { SQLiteObject } from '@ionic-native/sqlite';
 import { Storage } from '@ionic/storage';
 
 @Injectable()
 export class DescribeProvider {
 
   db: SQLiteObject = null;
-  public ready: Promise<void>;
-
+  
   constructor(public http: HttpClient, private storage: Storage) {}
 
   setDatabase(db: SQLiteObject){
@@ -19,7 +18,6 @@ export class DescribeProvider {
   }
 
   createTable() {
-
     let sql = "create table if not exists describe(nombreObj TEXT PRIMARY KEY , campos TEXT)";
     this.db.executeSql(sql, []).then(()=>{
        console.log("tabla describe creada con exito");
@@ -28,7 +26,7 @@ export class DescribeProvider {
   }
 
   upsert(objName : string, fields : string){
-    let sql = "INSERT INTO describe(nombreObj, campos) VALUES (?, ?)";
+    let sql = "INSERT OR REPLACE INTO describe(nombreObj, campos) VALUES (?, ?)";
     let values = [objName, fields];
     return this.db.executeSql(sql,values);
   }

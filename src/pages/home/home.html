@@ -1,7 +1,7 @@
 <ion-header>
   <ion-navbar>
     <ion-title>
-      {{ nameObj }}
+      {{ toogleHeader }}
     </ion-title>
   </ion-navbar>
 </ion-header>
@@ -23,7 +23,7 @@
 	<div *ngIf="!viewSearch">
 	  <button ion-button block color="light" (click)="viewSearch = true">Volver a elegir</button>    
       <button ion-button block color="primary">Sync</button>
-      <button ion-button block color="secondary">Alta</button>
+      <button ion-button block color="secondary" (click)="goToForm()">Alta</button>
       <button ion-button block color="dark">Lista</button>
 		
        
