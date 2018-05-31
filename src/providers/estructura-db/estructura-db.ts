@@ -28,8 +28,7 @@ export class EstructuraDbProvider {
   }
   //FALTA ADJUNTAR LOS ITEMS DEL PICKLIST EN SALESFORCE
   createTable(object : any){
-    //let sql = "create table if not exists describe(nombreObj TEXT PRIMARY KEY , campos TEXT)";
-    //let sql = 'CREATE TABLE IF NOT EXISTS '+ object.nombre;
+ 
     let sql = `CREATE TABLE IF NOT EXISTS ${object.nombre} `;
     let columns = '';
 
