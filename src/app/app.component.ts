@@ -5,7 +5,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 import { LoginPage } from '../pages/login/login';
 
 import { SQLite } from "@ionic-native/sqlite";
-import { DescribeProvider } from '../providers/describe/describe';
+import { SqliteProvider } from '../providers/sqlite/sqlite';
 
 @Component({
   templateUrl: 'app.html'
@@ -18,7 +18,7 @@ export class MyApp {
               public statusBar: StatusBar,
               public splashScreen: SplashScreen,
               public sqlite: SQLite,
-              public describeSqlite : DescribeProvider) {
+              public sqliteProvider : SqliteProvider) {
 
     this.initializeApp();
   }
@@ -42,8 +42,8 @@ export class MyApp {
       location: 'default' // the location field is required
     }).then((db) => {
 
-      this.describeSqlite.setDatabase(db);
-      this.describeSqlite.createTable();
+      this.sqliteProvider.setDatabase(db);
+      //this.describeSqlite.createTable();
    
     }).catch(error =>{
       console.error(error);

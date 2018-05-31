@@ -3,12 +3,12 @@ import { Injectable } from '@angular/core';
 
 import { Storage } from '@ionic/storage';
 
-import { Observable } from 'rxjs/Observable';
+/*import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/concatMap';
 import 'rxjs/add/observable/throw';
 import 'rxjs/add/operator/do';
-import 'rxjs/add/operator/catch';
+import 'rxjs/add/operator/catch';*/
 
 @Injectable()
 export class SalesforceProvider {
@@ -18,13 +18,13 @@ export class SalesforceProvider {
   client_id = "3MVG9g9rbsTkKnAVk2cupwGP3aX9EvUlDkkZgETvAxDGx2jfaN7fjCJEjHMeXUFhqa580FkKM.9a6uICLUzoU";
   client_secret = "249220363635059161";
 
-  //username = "dani@x.com";
-  //password = "xappia123";
-  //token = "lu6EVD1VoGDguXJpKPSwzYCFb" ;  
+  username = "dani@x.com";
+  password = "xappia123";
+  token = "lu6EVD1VoGDguXJpKPSwzYCFb" ;  
 
-  username = "daniel.pereira@xappia.com";
-  password = "xappia10";
-  token = "M1uV24d15OAOpvlFMo8yCbds" ;  
+  //username = "daniel.pereira@xappia.com";
+  //password = "xappia10";
+  //token = "M1uV24d15OAOpvlFMo8yCbds" ;  
 
   constructor(public http: HttpClient, private storage: Storage) {  }
 
@@ -37,19 +37,21 @@ export class SalesforceProvider {
 
   }
 
-  getAllMetadaObjects() : Observable<Object>{
+  async getAllObjects(){
+	              
+    try{
+         const logData = await this.storage.get('LogData');
+         return this.http.get(logData.instance_url+'/services/data/v20.0/sobjects/',
+                 {headers: new HttpHeaders({'Authorization': 'Bearer '+logData.access_token ,
+                                            'Content-Type': 'application/json'})}).toPromise();
+    }
+    catch(e){
+        console.log(e.message);
+    }
 
-     return Observable.fromPromise(this.storage.get('LogData')).concatMap(token => {
-
-        	return this.http.get(token.instance_url+'/services/data/v20.0/sobjects/',
-	    	         {headers: new HttpHeaders({'Authorization': 'Bearer '+token.access_token ,
-	    	                                    'Content-Type': 'application/json'})})
-	                 .do(objects => console.log("DO ",objects))
-	                 .catch(this.handleError)
-     });
   }
 
-  async getMetadaObject(objName: string){
+  async getFieldsObject(objName: string){
 
     try{
          const logData = await this.storage.get('LogData');
@@ -62,14 +64,31 @@ export class SalesforceProvider {
     }
      
   }
-    
-  handleError(error : Response){
+
+  async getObjectsCustomWS(){
+
+    try{
+          const credentials = await this.storage.get('LogData');
+      
+          return this.http.get(credentials.instance_url+'/services/apexrest/objetos/cuentas',
+                                           { headers: new HttpHeaders({'Authorization': 'Bearer '+credentials.access_token ,
+                                                                       'Content-Type': 'application/json'}) }).toPromise();
+    }
+    catch(e){
+        console.log('error en getObjectsCustomWS ',e.message);
+        throw new Error(e.message);
+    }
+     
+  }
+
+  
+  /*handleError(error : Response){
   	console.log(error);
     let msg = 'Error en consulta :'+ error.status +' en '+ error.url;
     return  Observable.throw(msg);
   }
 
-  /*getQueryResult(query : string){ 
+  getQueryResult(query : string){ 
 
   	this.storage.get('LogData').then((info) => {
         

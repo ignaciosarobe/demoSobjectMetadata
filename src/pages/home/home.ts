@@ -24,8 +24,6 @@ export class HomePage {
               public salesForce : SalesforceProvider,
               public describeSqlite : DescribeProvider
               ) {
-
-    this.getObjectDescribe();
   }
 
   get toogleHeader(){
@@ -35,7 +33,8 @@ export class HomePage {
 
   getItems(ev: any) {
     
-    this.getObjectDescribe();
+    //thi
+    //aca le pegaria a sqlite
 
     let val = ev.target.value;
 
@@ -49,23 +48,6 @@ export class HomePage {
     }
   }
 
-  getObjectDescribe(){
-
-    this.salesForce.getAllMetadaObjects().subscribe( 
-
-        accs => {
-        	this.metaObjects = accs['sobjects'].filter( obj => obj.updateable && obj.layoutable );
-        	console.log('objetos editables ',this.metaObjects)
-        	this.utils.dismissLoading();
-        },
-  	   	error => {
-  	   		 this.utils.dismissLoading();
-  	   		 this.errorMsg = <any>error;
-  	   		 this.utils.showAlert('Error',this.errorMsg);
-  	   	}	 
-    )
-  }
-
   async objectSelected(obj : any){
 
   	this.utils.showLoading('Actualizando campos...');
@@ -73,14 +55,14 @@ export class HomePage {
     this.Obj = obj;
 
     try{
-  
-        let object = await this.salesForce.getMetadaObject(obj.name);
-        console.log('campos sin filtar : ',object['fields']);
+
+        //let object = await this.salesForce.getMetadaObject(obj.name);
+        //console.log('campos sin filtar : ',object['fields']);
 
 
-        this.fields = this.fieldsFilter(object);
+        //this.fields = this.fieldsFilter(object);
         
-        await this.describeSqlite.upsert(obj.name, JSON.stringify(this.fields));
+        //await this.describeSqlite.upsert(obj.name, JSON.stringify(this.fields));
       
         this.utils.dismissLoading();
 
@@ -107,38 +89,9 @@ export class HomePage {
   }
 
 
-  //meter estos metodos en un helper de filtros
+  
 
-  fieldsFilter(object : any){
 
-    let lista = [];
-
-    object['fields'].forEach(obj =>{
-       if(obj.updateable)
-          lista.push({
-            required : !obj.nillable, 
-            label :obj.label,
-            tipo: obj.type, 
-            picklist: this.pickListFilter(obj.picklistValues)});
-    })
-    return lista;
-  }
-
-  pickListFilter(picklistValues : any){
-    if(picklistValues.length > 0){
-
-       let listPick = [];
-       picklistValues.forEach((p,i) => {
-          if(p.active){
-             listPick[i] = {label: p.label, value: p.value}
-          }
-       })
-       return listPick;
-
-    }else{ 
-      return []; 
-    }
-  }
 
 
 

@@ -9,12 +9,12 @@
 <ion-content padding>
 
     <div *ngIf="viewSearch">
-  
+        <button ion-button block color="primary">Sync Objetos y campos</button>
 		<ion-searchbar (ionInput)="getItems($event)"></ion-searchbar>
 
 		<ion-list inset>
 			<button ion-item *ngFor="let item of searchResult" (click)="objectSelected(item)">
-			{{ item.label }} - {{ item.name }}
+			{{ item.label }}
 			</button> 
 		</ion-list>
   
@@ -22,11 +22,9 @@
 
 	<div *ngIf="!viewSearch">
 	  <button ion-button block color="light" (click)="viewSearch = true">Volver a elegir</button>    
-      <button ion-button block color="primary">Sync</button>
       <button ion-button block color="secondary" (click)="goToForm()">Alta</button>
       <button ion-button block color="dark">Lista</button>
 		
-       
 	  <ion-item>
 		  <ion-icon name="logo-twitter" item-start></ion-icon>
 		  Followers

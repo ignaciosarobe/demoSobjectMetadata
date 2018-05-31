@@ -15,6 +15,8 @@ import { SQLite } from '@ionic-native/sqlite';
 import { SalesforceProvider } from '../providers/salesforce/salesforce';
 import { UtilitiesProvider } from '../providers/utilities/utilities';
 import { DescribeProvider } from '../providers/describe/describe';
+import { EstructuraDbProvider } from '../providers/estructura-db/estructura-db';
+import { SqliteProvider } from '../providers/sqlite/sqlite';
 
 @NgModule({
   declarations: [
@@ -44,7 +46,11 @@ import { DescribeProvider } from '../providers/describe/describe';
     SQLite,
     SalesforceProvider,
     UtilitiesProvider,
-    DescribeProvider
+    DescribeProvider,
+    EstructuraDbProvider,
+    EstructuraDbProvider,
+    SqliteProvider,
+    SqliteProvider
   ]
 })
 export class AppModule {}
