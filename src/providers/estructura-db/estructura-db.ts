@@ -27,11 +27,10 @@ export class EstructuraDbProvider {
       	      console.log("obj ",obj);
       	      this.table = obj.nombre;
               let tableOk = await this.createTable(obj);
-              let uniqueIndex =  this.sqlite.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_${this.table}_sfId ON ${this.table} (sfId)`);
-              let query = `PRAGMA table_info( ${this.table} );`;
-              let tableSchema = await this.sqlite.query(query);
+              let uniqueIndex =  await this.createUniqueIndex(obj.nombre);
+              let tableSchema = await this.getTableSchema(obj.nombre);
               let sfRecords = await this.salesForce.query(this.SFrecordsQueryFormat(tableSchema));
-              query = this.sqliteUpsertQueryFormat(sfRecords);
+              let query = this.sqliteUpsertQueryFormat(sfRecords);
               let recordsValues = this.getRecordsValues();
               let saveRecordsOk = this.saveSFrecords(query,recordsValues);
    
@@ -41,6 +40,14 @@ export class EstructuraDbProvider {
             }
     }
     	 
+  }
+
+  getTableSchema(objName: string){
+    return this.sqlite.getTableSchema(objName);
+  }
+
+  createUniqueIndex(objName: string){
+     return this.sqlite.createUniqueIndex(objName);
   }
 
   //FALTA ADJUNTAR LOS ITEMS DEL PICKLIST EN SALESFORCE
@@ -70,6 +77,7 @@ export class EstructuraDbProvider {
     for(let i=0; i<columnsSize; i++){
         //console.log("column ", tableSchema.rows.item(i));
         let columnName = tableSchema.rows.item(i).name;
+        console.log("columnName ", columnName);
         if(columnName != 'id' && columnName != 'sfId'){
            this.columns.push(columnName);
         }
@@ -105,15 +113,15 @@ export class EstructuraDbProvider {
     return values;
   }
 
-  saveSFrecords(query: string, recordsValues: any){
+  async saveSFrecords(query: string, recordsValues: any){
 
     for (let key in recordsValues){
          try{
-         	  let saveOk = this.sqlite.query(query,recordsValues[key]);
+         	  let saveOk = await this.sqlite.query(query,recordsValues[key]);
          	  console.log('saveOk index ',key,saveOk);
 
          }catch(e){
-         	throw e.message;
+         	  throw e.message;
          }
     } 
 

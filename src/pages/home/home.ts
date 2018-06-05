@@ -63,8 +63,6 @@ export class HomePage {
              this.records.push(recs.rows.item(i));
         }
 
-        console.log('records encontrados ',this.records);
-      
         this.utils.dismissLoading();
 
     }catch(e){
@@ -76,7 +74,6 @@ export class HomePage {
   }
 
   edit(record: any){
-    console.log('registro a editar :  ', record);
     this.goToForm(record);
   }
 
@@ -86,7 +83,7 @@ export class HomePage {
 
   
   goToForm(record: any){
-    this.navCtrl.push('FormularioPage',{ metadataObj: this.Obj, record: record });
+    this.navCtrl.push('FormularioPage',{ objName: this.Obj.nombre, record: record });
   }
 
 

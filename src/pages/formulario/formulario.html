@@ -12,7 +12,7 @@
 
 <ion-content padding>
 
-  <ion-list *ngFor="let campo of fields">
+  <!--<ion-list *ngFor="let campo of fields">
     
     <ion-item *ngIf="campo.tipo == 'string' || campo.tipo == 'date' || campo.tipo == 'datetime'">
         <ion-label color="primary" stacked>{{ campo.label }} <ng-container>*</ng-container></ion-label>
@@ -43,7 +43,7 @@
       <ion-label color="primary" stacked>{{ campo.label }} <ng-container>*</ng-container></ion-label>
       <ion-input type="email" placeholder="Input email"></ion-input>
     </ion-item>
-    <!-- Usar un pipe para darle formato cuando al tipo currency , percent , date etc -->
+    Usar un pipe para darle formato cuando al tipo currency , percent , date etc 
     <ion-item *ngIf="numericalValues.includes(campo.tipo)">  
       <ion-label color="primary" stacked>{{ campo.label }} <ng-container>*</ng-container></ion-label>
       <ion-input type="number" placeholder="Input currency || int || double || percent"></ion-input>
@@ -61,7 +61,7 @@
       <ion-input type="search" placeholder="Input search"></ion-input>
     </ion-item>
 
-  </ion-list>
+  </ion-list>-->
 
   <button ion-button block color="primary" (click)="guardar()">Guardar</button>
 

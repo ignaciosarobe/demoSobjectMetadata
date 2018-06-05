@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
+import { SqliteProvider } from '../../providers/sqlite/sqlite';
 
 
 @IonicPage()
@@ -9,24 +10,37 @@ import { IonicPage, NavController, NavParams } from 'ionic-angular';
 })
 export class FormularioPage {
 
-  objSelected : any;
-  fields : Array<any> = [];
+  objName : string;
+  record : Array<any> = [];
   //esto deberia estar en variables de config
   numericalValues: Array<string> = ['currency','int','double','percent'];
-  todo : any;
+  //todo : any;
+  tableSchema : any;
 
-  constructor(public navCtrl: NavController, public navParams: NavParams) {
+  constructor(public navCtrl: NavController, 
+              public navParams: NavParams,
+              public sqlite : SqliteProvider) {
 
-  	this.objSelected = this.navParams.get('obj'); 
-  	this.fields = this.navParams.get('fields');
+  	this.objName = this.navParams.get('objName'); 
+  	this.record = this.navParams.get('record');
+    this.getTableSchema();
+    
+    console.log('table ',this.objName);
+    console.log('record ',this.record);
 
-  	console.log('objSelected ',this.objSelected);
-  	console.log('fields ',this.fields);
-  	
+    
+                                             
   }
 
+  async getTableSchema(){
+    this.tableSchema = await this.sqlite.getTableSchema(this.objName);
+    console.log('tableSchema ',this.tableSchema);
+  }
+
+
+
   guardar(){
-  	console.log('TODO : ',this.todo);
+  	//console.log('TODO : ',this.todo);
   }
 
 

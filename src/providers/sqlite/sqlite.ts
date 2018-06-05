@@ -24,6 +24,15 @@ export class SqliteProvider {
     return this.db.executeSql(sql,[]);
   }
 
+  getTableSchema(table : string){
+    let query = `PRAGMA table_info( ${table} );`;
+    return this.db.executeSql(query,[]);
+  }
+
+  createUniqueIndex(table : string){
+    return this.db.executeSql(`CREATE UNIQUE INDEX IF NOT EXISTS idx_${table}_sfId ON ${table} (sfId)`,[]);
+  }
+
  
   /*upsert(objName : string, fields: any ){
     let sql = "INSERT OR REPLACE INTO describe(nombreObj, campos) VALUES (?, ?)";
