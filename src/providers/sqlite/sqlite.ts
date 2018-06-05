@@ -17,14 +17,14 @@ export class SqliteProvider {
     }
   }
 
-  createTable(sql: string) {
-    //let sql = "create table if not exists describe(nombreObj TEXT PRIMARY KEY , campos TEXT)";
-    this.db.executeSql(sql, []).then(()=>{
-       console.log("tabla creada con exito");
-    }).catch(error => console.log(error));
-
+  query(sql: string , params?: any) {
+    
+    if(params != null){ return this.db.executeSql(sql, params); }
+    
+    return this.db.executeSql(sql,[]);
   }
 
+ 
   upsert(objName : string, fields : string){
     let sql = "INSERT OR REPLACE INTO describe(nombreObj, campos) VALUES (?, ?)";
     let values = [objName, fields];

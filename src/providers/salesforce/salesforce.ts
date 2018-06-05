@@ -37,8 +37,41 @@ export class SalesforceProvider {
 
   }
 
-  async getAllObjects(){
-	              
+  async getMetadaObjects(){
+
+    try{
+          const credentials = await this.storage.get('LogData');
+      
+          return this.http.get(credentials.instance_url+'/services/apexrest/objetos/',
+                                { headers: new HttpHeaders({'Authorization': 'Bearer '+credentials.access_token ,
+                                                            'Content-Type': 'application/json'}) }).toPromise();
+    }
+    catch(e){
+        console.log('error en getObjectsCustomWS ',e.message);
+        throw new Error(e.message);
+    }
+     
+  }
+
+  async query(query : string){
+   
+    try{
+          const credentials = await this.storage.get('LogData');
+          console.log(credentials);
+          return this.http.get(credentials.instance_url+'/services/data/v41.0/query/?q='+ encodeURI(query),
+                                {headers: new HttpHeaders({'Authorization': 'Bearer '+credentials.access_token ,
+                                                           'Content-Type': 'application/json'})}).toPromise();
+    }catch(e){
+         console.log('error en getQueryResult ',e.message);
+         throw new Error(e.message);
+    }
+
+  
+   
+  }
+
+  /*async getObjectsDescribe(){
+                
     try{
          const logData = await this.storage.get('LogData');
          return this.http.get(logData.instance_url+'/services/data/v20.0/sobjects/',
@@ -51,7 +84,7 @@ export class SalesforceProvider {
 
   }
 
-  async getFieldsObject(objName: string){
+  async getFieldsDescribe(objName: string){
 
     try{
          const logData = await this.storage.get('LogData');
@@ -63,50 +96,16 @@ export class SalesforceProvider {
         console.log(e.message);
     }
      
-  }
-
-  async getObjectsCustomWS(){
-
-    try{
-          const credentials = await this.storage.get('LogData');
-      
-          return this.http.get(credentials.instance_url+'/services/apexrest/objetos/cuentas',
-                                           { headers: new HttpHeaders({'Authorization': 'Bearer '+credentials.access_token ,
-                                                                       'Content-Type': 'application/json'}) }).toPromise();
-    }
-    catch(e){
-        console.log('error en getObjectsCustomWS ',e.message);
-        throw new Error(e.message);
-    }
-     
-  }
+  }*/
 
   
   /*handleError(error : Response){
   	console.log(error);
     let msg = 'Error en consulta :'+ error.status +' en '+ error.url;
     return  Observable.throw(msg);
-  }
+  }*/
 
-  getQueryResult(query : string){ 
-
-  	this.storage.get('LogData').then((info) => {
-        
-       	return this.http.get(info.instance_url+'/services/data/v41.0/query/?q='+ encodeURI(query),
-    	         {headers: new HttpHeaders({'Authorization': 'Bearer '+info.token ,
-    	                                    'Content-Type': 'application/json'})})
-	       	   .toPromise()
-		       .then(data => {
-		       	 console.log("get all result : ", data)
-		       })
-		       .catch(Error =>{
-		       	 console.log("Error : ", Error)
-		       });
-    })
-   
-  }
-
-  handleError(error : Response){
+  /*handleError(error : Response){
     let msg = 'Error en consulta : ${error.status} en ${error.url}';
     return  Observable.throw(msg);
   }

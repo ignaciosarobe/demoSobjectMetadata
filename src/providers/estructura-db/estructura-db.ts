@@ -1,58 +1,127 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { SqliteProvider } from '../sqlite/sqlite';
+import { SalesforceProvider } from '../../providers/salesforce/salesforce';
 
 
 @Injectable()
 export class EstructuraDbProvider {
 
-  tableName : String;
-  columnName : Array<any>;
+  table : String;
+  columns = [];
+  SFrecords = [];
 
-  constructor(public http: HttpClient, public sqliteProvider : SqliteProvider) {
-    
+  constructor(public http: HttpClient, 
+  	          public sqlite : SqliteProvider,
+  	          public salesForce : SalesforceProvider) {
   }
 
-  syncObjects(result : any){
-    console.log('objs ',result);
-     
-    result.sobjects.forEach( object => {
-
-        console.log("OBJETO : ", object);
+  async createTables(result : any){
    
-        this.createTable(object); 
-    });
+    for (let i in result.sobjects) {
+    	 let obj = result.sobjects[i];
+    	 try{
+    	      console.log("obj ",obj);
+    	      this.table = obj.nombre;
+              let tableOk = await this.createTable(obj);
+              let query = `PRAGMA table_info( ${obj.nombre} );`;
+              let tableSchema = await this.sqlite.query(query);
+              let records = await this.salesForce.query(this.SFrecordsQueryFormat(tableSchema));
+              query = this.sqliteUpsertQueryFormat(records);
+              let saveOk = this.saveSFrecords(query);
 
-     
-
+              this.columns = [];
+    	    }catch(e){
+    	 	  throw `Error al crear la tabla o al traer los registros ${obj.nombre} , msg : ${e.message}`;
+            }
+    }
+    	 
   }
+
   //FALTA ADJUNTAR LOS ITEMS DEL PICKLIST EN SALESFORCE
-  createTable(object : any){
+
+  async createTable(object : any){
  
-    let sql = `CREATE TABLE IF NOT EXISTS ${object.nombre} `;
+    let sql = `CREATE TABLE IF NOT EXISTS ${object.nombre} (id INTEGER PRIMARY KEY AUTOINCREMENT, sfId TEXT,`;
     let columns = '';
 
   	object.fields.forEach( (field, index) => {
-        //console.log("TIPO DE CAMPO SF API : ", field.Tipo__c);
-        //console.log("sqliteType ", sqliteType);
         let sqliteType = this.convertFieldType(field.Tipo__c);
-        columns += `( ${field.Name} ${object.sqliteType} ,`;
-
-         if(field.length-1 == index){
-            columns.slice(0,-1);  
-            columns + ')';
-         } 
-             
+        columns += `${field.Name} ${sqliteType} ,`;    
     });
-    
-    sql = sql + columns;
-    console.log("QUERY : ",sql);
-    //DESDE ACA LLAMO A EL SQLITE PROVODER
+
+    sql = `${sql} ${columns.slice(0,-1)} )`;
+    try{
+    	return await this.sqlite.query(sql);
+    }catch(e){
+        throw e.message;
+    }
+
   }
 
+  SFrecordsQueryFormat(tableSchema: any) {
+
+  	console.log('esquema : ',tableSchema); 
+   
+    let columnsSize = tableSchema.rows.length;
+
+    for(let i=0; i<columnsSize; i++){
+        console.log("column ", tableSchema.rows.item(i));
+        let columnName = tableSchema.rows.item(i).name;
+        if(columnName != 'id' && columnName != 'sfId'){
+           this.columns.push(columnName);
+        }
+    }
+
+    return `SELECT Id,${this.columns.join(',')} FROM ${this.table} LIMIT 10`;
+  }
+
+  sqliteUpsertQueryFormat(records : any){
+ 
+    if(records.totalSize == 0){ return null;}
+
+    console.log("records ", records);
+    this.SFrecords = records.records;
+
+    let query = `INSERT OR REPLACE INTO ${this.table}`;
+    let cols = `(${this.columns.join(',')})`;
+    let values = '?,'.repeat(this.columns.length);
+    values = `VALUES (${values.slice(0,-1)})`;
+
+    return `${query} ${cols} ${values}`;
+  }
+
+  saveSFrecords(query : string){
+
+    let values = []; //QUE ESTA FUNCION SOLO DEVUELVA LOS VALORES
+    this.SFrecords.forEach(record =>{
+    	//console.log(Object.keys(record));
+        for (let key in record) {
+	         console.log(key);
+	         if(this.columns.indexOf(key) != -1){
+	         	values.push(record[key]); //TIENE QUE SER UN ARRAY DE ARRAY
+	         }
+	    }
+
+    }) 
+
+    console.log('values',values);
+
+
+
+    /*if(query != null){
+      	
+      	console.log("query insert ",query);
+        let insertsOk = await this.sqlite.query(query,sfvalues);
+        console.log("insertsOk ",insertsOk);
+     }*/
+
+    
+  }
+
+
   convertFieldType(sfType: String){
-  	//APEX NUMERIC : CURRENCY,DOUBLE, INTEGER,BOOLEAN
-  	//SQLITE NUMERIC: INTEGER, TEXT , NUMERIC(PARA BOOLEANOS) REAL(DOUBLE,FLOAT),NONE
+ 
     switch (sfType) {
     	case "STRING":
             return "TEXT";  		

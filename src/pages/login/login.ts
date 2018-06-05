@@ -5,6 +5,7 @@ import { SalesforceProvider } from '../../providers/salesforce/salesforce';
 import { Storage } from '@ionic/storage';
 import { DescribeProvider } from '../../providers/describe/describe';
 import { EstructuraDbProvider } from '../../providers/estructura-db/estructura-db';
+import { SqliteProvider } from '../../providers/sqlite/sqlite';
 
 @IonicPage()
 @Component({
@@ -21,8 +22,8 @@ export class LoginPage {
   	          public utils : UtilitiesProvider,
   	          public salesForce : SalesforceProvider,
   	          private storage: Storage,
-              public describeSqlite : DescribeProvider,
-              public localDB : EstructuraDbProvider) {
+              public sqlite : SqliteProvider,
+              public localStructure : EstructuraDbProvider) {
   }
 
   async login(){ //DESPUES DE ARMAR LA STRUCT LISTAR LAS CUENTAS Y SI SE PUEDE MODIFICAR
@@ -32,11 +33,13 @@ export class LoginPage {
   	try{
       
 	  	  const log = await this.salesForce.login();
+        this.storage.set('LogData',log);
 
-        let objs = await this.salesForce.getObjectsCustomWS();
+        let objs = await this.salesForce.getMetadaObjects();
      
-        let result = await this.localDB.syncObjects(objs);
-        console.log('result create table ',result);
+        let tablesOk = await this.localStructure.createTables(objs);
+
+        //let insertsOk = await this.localDB.setRecordsByObject(recordsOk);
       
         this.utils.dismissLoading();
 	      
@@ -47,6 +50,25 @@ export class LoginPage {
         this.utils.showAlert('informe',e.message);
   	}
 	
+  }
+
+  drop(){
+    this.sqlite.query('DROP TABLE IF EXISTS Account;');
+  }
+
+  showTable(){
+
+    this.sqlite.query('PRAGMA table_info(Account);')
+    .then(success => {
+          console.log("success schema: ", success);
+          for(let i=0; i<success.rows.length; i++){
+              console.log("row ", success.rows.item(i));
+          }
+             
+          
+    }).catch(error =>{
+          console.log("error schema : ", error);
+    });
   }
 
   /*async syncObjects(){
