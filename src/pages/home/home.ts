@@ -3,7 +3,8 @@ import { NavController, AlertController, IonicPage } from 'ionic-angular';
 import { SalesforceProvider } from '../../providers/salesforce/salesforce';
 import { UtilitiesProvider } from '../../providers/utilities/utilities';
 import { DescribeProvider } from '../../providers/describe/describe';
-
+import { SqliteProvider } from '../../providers/sqlite/sqlite';
+import { Storage } from '@ionic/storage';
 
 @IonicPage()
 @Component({
@@ -12,57 +13,57 @@ import { DescribeProvider } from '../../providers/describe/describe';
 })
 export class HomePage { 
   
-  metaObjects : any = null ;
-  errorMsg : string;
+  sObjects : any = null ;
   searchResult : Array<any>;
   viewSearch : boolean = true;
-  fields : Array<any> = [];
   Obj : any;
+  records = [];
 
   constructor(public navCtrl: NavController,
   	          public utils : UtilitiesProvider,
               public salesForce : SalesforceProvider,
-              public describeSqlite : DescribeProvider
-              ) {
+              public describeSqlite : DescribeProvider,
+              private storage: Storage,
+              public sqlite : SqliteProvider) {
+
+    this.storage.get('metadata').then(metadata => this.sObjects = metadata.sobjects)
+                                .catch(error => console.log(error))
   }
 
   get toogleHeader(){
-    return this.viewSearch ? 'Elegir Objeto : ' : this.Obj.label;
+    return this.viewSearch ? 'HOME : ' : this.Obj.label;
   }  
   
 
-  getItems(ev: any) {
+  getItems(ev: any) { 
     
-    //thi
-    //aca le pegaria a sqlite
-
     let val = ev.target.value;
 
-    if (val && val.trim() != '' && this.metaObjects != null) {
+    if (val && val.trim() != '' && this.sObjects != null) {
 
-         this.searchResult = this.metaObjects.filter((obj) => {
-
+         this.searchResult = this.sObjects.filter((obj) => {
+            
             this.utils.dismissLoading();
             return (obj.label.toLowerCase().indexOf(val.toLowerCase()) > -1);
       })
     }
   }
 
-  async objectSelected(obj : any){
+  async objectSelected(metadaObj : any){
 
-  	this.utils.showLoading('Actualizando campos...');
+  	this.utils.showLoading('Buscando registros...');
+    console.log('metadaObj ',metadaObj);
   	this.viewSearch = false;
-    this.Obj = obj;
+    this.Obj = metadaObj;
 
     try{
+        let query = `SELECT * FROM ${metadaObj.nombre}`;
+        let recs = await this.sqlite.query(query);
+        for (var i = 0; i < recs.rows.length; i++) {
+             this.records.push(recs.rows.item(i));
+        }
 
-        //let object = await this.salesForce.getMetadaObject(obj.name);
-        //console.log('campos sin filtar : ',object['fields']);
-
-
-        //this.fields = this.fieldsFilter(object);
-        
-        //await this.describeSqlite.upsert(obj.name, JSON.stringify(this.fields));
+        console.log('records encontrados ',this.records);
       
         this.utils.dismissLoading();
 
@@ -74,18 +75,18 @@ export class HomePage {
 
   }
 
-  async goToForm(){
+  edit(record: any){
+    console.log('registro a editar :  ', record);
+    this.goToForm(record);
+  }
 
-    //test
-     let describes =  await this.describeSqlite.get();
-     for (var i = 0; i < describes.rows.length; i++) {
-         console.log('describe :  ', describes.rows.item(i));
-     }
-    //test
+  delete(record: any){
 
+  }
 
-     this.utils.showLoading(null,true);// ponerlo en true a veces tira un error
-     this.navCtrl.push('FormularioPage',{ obj: this.Obj, fields: this.fields });
+  
+  goToForm(record: any){
+    this.navCtrl.push('FormularioPage',{ metadataObj: this.Obj, record: record });
   }
 
 

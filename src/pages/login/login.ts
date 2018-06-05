@@ -26,8 +26,7 @@ export class LoginPage {
               public localStructure : EstructuraDbProvider) {
   }
 
-  async login(){ //DESPUES DE ARMAR LA STRUCT LISTAR LAS CUENTAS Y SI SE PUEDE MODIFICAR
-    
+  async login(){ 
     this.utils.showLoading('Aguarde unos instantes ...',true);
 
   	try{
@@ -35,15 +34,13 @@ export class LoginPage {
 	  	  const log = await this.salesForce.login();
         this.storage.set('LogData',log);
 
-        let objs = await this.salesForce.getMetadaObjects();
-     
-        let tablesOk = await this.localStructure.createTables(objs);
+        let metaData = await this.salesForce.getMetadaObjects();
+        this.storage.set('metadata',metaData);
 
-        //let insertsOk = await this.localDB.setRecordsByObject(recordsOk);
-      
-        this.utils.dismissLoading();
-	      
+        let tablesOk = await this.localStructure.create(metaData);
 
+        this.navCtrl.push('HomePage');
+        
   	}catch(e){
 
         this.utils.dismissLoading();
@@ -51,16 +48,17 @@ export class LoginPage {
   	}
 	
   }
-
-  drop(){
+  
+  //TEST
+  drop(){ 
     this.sqlite.query('DROP TABLE IF EXISTS Account;');
   }
-
+  //TEST
   showTable(){
 
     this.sqlite.query('PRAGMA table_info(Account);')
     .then(success => {
-          console.log("success schema: ", success);
+          console.log("success schema: ", success.rows.length);
           for(let i=0; i<success.rows.length; i++){
               console.log("row ", success.rows.item(i));
           }
@@ -69,6 +67,22 @@ export class LoginPage {
     }).catch(error =>{
           console.log("error schema : ", error);
     });
+  }
+  //TEST
+  showRecords(){
+    this.sqlite.query('SELECT * FROM Account')
+      .then(success => {
+          console.log("registros en db local: ", success);
+          for(let i=0; i<success.rows.length; i++){
+              console.log("record ", success.rows.item(i));
+          }
+             
+          
+    }).catch(error =>{
+          console.log("error save records : ", error);
+    });
+
+
   }
 
   /*async syncObjects(){

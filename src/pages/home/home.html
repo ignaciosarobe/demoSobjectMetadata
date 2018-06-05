@@ -9,7 +9,6 @@
 <ion-content padding>
 
     <div *ngIf="viewSearch">
-        <button ion-button block color="primary">Sync Objetos y campos</button>
 		<ion-searchbar (ionInput)="getItems($event)"></ion-searchbar>
 
 		<ion-list inset>
@@ -21,15 +20,31 @@
     </div>
 
 	<div *ngIf="!viewSearch">
-	  <button ion-button block color="light" (click)="viewSearch = true">Volver a elegir</button>    
-      <button ion-button block color="secondary" (click)="goToForm()">Alta</button>
-      <button ion-button block color="dark">Lista</button>
+	    <ion-list *ngFor="let rec of records">
+		  <ion-item-sliding #item>
+
+		    <ion-item>
+		      <ion-icon name="ios-arrow-dropright" item-start></ion-icon>
+		          <h2>{{ rec.Name }}</h2>
+                  <p>{{ rec.BillingStreet }}</p>
+		      <ion-icon name="ios-arrow-dropleft" item-end></ion-icon>
+		    </ion-item>
+
+		    <ion-item-options side="left">
+		        <button ion-button icon-only large clear (click)="delete(rec)">
+			      <ion-icon color="danger" name="md-trash"></ion-icon>
+			    </button>
+		    </ion-item-options>
+
+		    <ion-item-options side="right">
+		        <button ion-button icon-only large clear (click)="edit(rec)">
+		          <ion-icon color="secondary" name="ios-create"></ion-icon>
+		        </button>
+		    </ion-item-options>
+
+		  </ion-item-sliding>
+		</ion-list>
 		
-	  <ion-item>
-		  <ion-icon name="logo-twitter" item-start></ion-icon>
-		  Followers
-		  <ion-badge item-end>260k</ion-badge>
-	  </ion-item>
 	</div>
 
 </ion-content>

@@ -25,7 +25,7 @@ export class SqliteProvider {
   }
 
  
-  upsert(objName : string, fields : string){
+  /*upsert(objName : string, fields: any ){
     let sql = "INSERT OR REPLACE INTO describe(nombreObj, campos) VALUES (?, ?)";
     let values = [objName, fields];
     return this.db.executeSql(sql,values);
@@ -40,6 +40,6 @@ export class SqliteProvider {
   drop(tableName : string){
   	let sql ="delete from "+tableName;
     return this.db.executeSql(sql,[]);
-  } 
+  } */
 
 }

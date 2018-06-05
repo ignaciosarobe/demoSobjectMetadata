@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { SqliteProvider } from '../sqlite/sqlite';
 import { SalesforceProvider } from '../../providers/salesforce/salesforce';
+import { Storage } from '@ionic/storage';
 
 
 @Injectable()
@@ -13,26 +14,30 @@ export class EstructuraDbProvider {
 
   constructor(public http: HttpClient, 
   	          public sqlite : SqliteProvider,
-  	          public salesForce : SalesforceProvider) {
+  	          public salesForce : SalesforceProvider,
+              private storage: Storage) {
   }
 
-  async createTables(result : any){
-   
-    for (let i in result.sobjects) {
-    	 let obj = result.sobjects[i];
-    	 try{
-    	      console.log("obj ",obj);
-    	      this.table = obj.nombre;
+  async create(metaData : any){
+  
+    
+    for (let i in metaData.sobjects) {
+      	 let obj = metaData.sobjects[i];
+      	 try{
+      	      console.log("obj ",obj);
+      	      this.table = obj.nombre;
               let tableOk = await this.createTable(obj);
-              let query = `PRAGMA table_info( ${obj.nombre} );`;
+              let uniqueIndex =  this.sqlite.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_${this.table}_sfId ON ${this.table} (sfId)`);
+              let query = `PRAGMA table_info( ${this.table} );`;
               let tableSchema = await this.sqlite.query(query);
-              let records = await this.salesForce.query(this.SFrecordsQueryFormat(tableSchema));
-              query = this.sqliteUpsertQueryFormat(records);
-              let saveOk = this.saveSFrecords(query);
-
-              this.columns = [];
-    	    }catch(e){
-    	 	  throw `Error al crear la tabla o al traer los registros ${obj.nombre} , msg : ${e.message}`;
+              let sfRecords = await this.salesForce.query(this.SFrecordsQueryFormat(tableSchema));
+              query = this.sqliteUpsertQueryFormat(sfRecords);
+              let recordsValues = this.getRecordsValues();
+              let saveRecordsOk = this.saveSFrecords(query,recordsValues);
+   
+                this.columns = [];
+      	    }catch(e){
+      	 	    throw `Error al crear la tabla o al traer los registros ${obj.nombre} , msg : ${e.message}`;
             }
     }
     	 
@@ -42,7 +47,7 @@ export class EstructuraDbProvider {
 
   async createTable(object : any){
  
-    let sql = `CREATE TABLE IF NOT EXISTS ${object.nombre} (id INTEGER PRIMARY KEY AUTOINCREMENT, sfId TEXT,`;
+    let sql = `CREATE TABLE IF NOT EXISTS ${object.nombre} (id INTEGER PRIMARY KEY AUTOINCREMENT,sfId TEXT,`;
     let columns = '';
 
   	object.fields.forEach( (field, index) => {
@@ -59,20 +64,17 @@ export class EstructuraDbProvider {
 
   }
 
-  SFrecordsQueryFormat(tableSchema: any) {
-
-  	console.log('esquema : ',tableSchema); 
-   
+  SFrecordsQueryFormat(tableSchema: any) {  
     let columnsSize = tableSchema.rows.length;
 
     for(let i=0; i<columnsSize; i++){
-        console.log("column ", tableSchema.rows.item(i));
+        //console.log("column ", tableSchema.rows.item(i));
         let columnName = tableSchema.rows.item(i).name;
         if(columnName != 'id' && columnName != 'sfId'){
            this.columns.push(columnName);
         }
     }
-
+    console.log(`SELECT Id,${this.columns.join(',')} FROM ${this.table} LIMIT 10`);
     return `SELECT Id,${this.columns.join(',')} FROM ${this.table} LIMIT 10`;
   }
 
@@ -82,7 +84,7 @@ export class EstructuraDbProvider {
 
     console.log("records ", records);
     this.SFrecords = records.records;
-
+    this.columns.unshift('sfId');
     let query = `INSERT OR REPLACE INTO ${this.table}`;
     let cols = `(${this.columns.join(',')})`;
     let values = '?,'.repeat(this.columns.length);
@@ -91,32 +93,30 @@ export class EstructuraDbProvider {
     return `${query} ${cols} ${values}`;
   }
 
-  saveSFrecords(query : string){
+  getRecordsValues(){
 
-    let values = []; //QUE ESTA FUNCION SOLO DEVUELVA LOS VALORES
-    this.SFrecords.forEach(record =>{
-    	//console.log(Object.keys(record));
-        for (let key in record) {
-	         console.log(key);
-	         if(this.columns.indexOf(key) != -1){
-	         	values.push(record[key]); //TIENE QUE SER UN ARRAY DE ARRAY
-	         }
-	    }
+    let values = [];
+    this.SFrecords.forEach((record,i) =>{
+    	console.log(record);
+        values[i] = new Array();
+        for (let key in record) { values[i].push(record[key]); }
+        values[i].shift();//borramos el campo type/url que retorna sf en cada registro
+    }); 
+    return values;
+  }
 
-    }) 
+  saveSFrecords(query: string, recordsValues: any){
 
-    console.log('values',values);
+    for (let key in recordsValues){
+         try{
+         	  let saveOk = this.sqlite.query(query,recordsValues[key]);
+         	  console.log('saveOk index ',key,saveOk);
 
+         }catch(e){
+         	throw e.message;
+         }
+    } 
 
-
-    /*if(query != null){
-      	
-      	console.log("query insert ",query);
-        let insertsOk = await this.sqlite.query(query,sfvalues);
-        console.log("insertsOk ",insertsOk);
-     }*/
-
-    
   }
 
 
