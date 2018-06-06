@@ -52,7 +52,7 @@ export class HomePage {
   async objectSelected(metadaObj : any){
 
   	this.utils.showLoading('Buscando registros...');
-    console.log('metadaObj ',metadaObj);
+   
   	this.viewSearch = false;
     this.Obj = metadaObj;
 
@@ -83,7 +83,7 @@ export class HomePage {
 
   
   goToForm(record: any){
-    this.navCtrl.push('FormularioPage',{ objName: this.Obj.nombre, record: record });
+    this.navCtrl.push('FormularioPage',{ obj: this.Obj, record: record });
   }
 
 

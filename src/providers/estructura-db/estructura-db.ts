@@ -2,8 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { SqliteProvider } from '../sqlite/sqlite';
 import { SalesforceProvider } from '../../providers/salesforce/salesforce';
-import { Storage } from '@ionic/storage';
-
 
 @Injectable()
 export class EstructuraDbProvider {
@@ -14,27 +12,25 @@ export class EstructuraDbProvider {
 
   constructor(public http: HttpClient, 
   	          public sqlite : SqliteProvider,
-  	          public salesForce : SalesforceProvider,
-              private storage: Storage) {
+  	          public salesForce : SalesforceProvider) {
   }
 
   async create(metaData : any){
   
-    
     for (let i in metaData.sobjects) {
       	 let obj = metaData.sobjects[i];
       	 try{
       	      console.log("obj ",obj);
       	      this.table = obj.nombre;
               let tableOk = await this.createTable(obj);
-              let uniqueIndex =  await this.createUniqueIndex(obj.nombre);
+              let uniqueIndex = await this.createUniqueIndex(obj.nombre);
               let tableSchema = await this.getTableSchema(obj.nombre);
               let sfRecords = await this.salesForce.query(this.SFrecordsQueryFormat(tableSchema));
               let query = this.sqliteUpsertQueryFormat(sfRecords);
               let recordsValues = this.getRecordsValues();
               let saveRecordsOk = this.saveSFrecords(query,recordsValues);
    
-                this.columns = [];
+              this.columns = [];
       	    }catch(e){
       	 	    throw `Error al crear la tabla o al traer los registros ${obj.nombre} , msg : ${e.message}`;
             }

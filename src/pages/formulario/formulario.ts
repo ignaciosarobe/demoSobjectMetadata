@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { SqliteProvider } from '../../providers/sqlite/sqlite';
+import { Storage } from '@ionic/storage';
 
 
 @IonicPage()
@@ -10,32 +11,24 @@ import { SqliteProvider } from '../../providers/sqlite/sqlite';
 })
 export class FormularioPage {
 
-  objName : string;
+  metadataObj : string;
   record : Array<any> = [];
   //esto deberia estar en variables de config
   numericalValues: Array<string> = ['currency','int','double','percent'];
-  //todo : any;
-  tableSchema : any;
-
+ 
   constructor(public navCtrl: NavController, 
               public navParams: NavParams,
-              public sqlite : SqliteProvider) {
+              public sqlite : SqliteProvider,
+              private storage: Storage) {
 
-  	this.objName = this.navParams.get('objName'); 
+  	this.metadataObj = this.navParams.get('obj'); 
   	this.record = this.navParams.get('record');
-    this.getTableSchema();
-    
-    console.log('table ',this.objName);
-    console.log('record ',this.record);
-
-    
-                                             
+  
+    console.log('metadataObj ',this.metadataObj);
+    console.log('record ',this.record);                    
   }
 
-  async getTableSchema(){
-    this.tableSchema = await this.sqlite.getTableSchema(this.objName);
-    console.log('tableSchema ',this.tableSchema);
-  }
+ 
 
 
 
